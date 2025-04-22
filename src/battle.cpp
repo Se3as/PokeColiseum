@@ -6,6 +6,7 @@ battle::battle(): turn(1){
 
 void battle::run(){
     match.show();
+    
 
     while(!match.ko() && !match.flee()){
         Fl::wait();
@@ -13,9 +14,10 @@ void battle::run(){
     
     cout<<"Battle in progress..."<<endl;
 
+
     if(match.ko() || match.flee()){
         match.hide();
-        Fl::wait();
+        Fl::check();
     }
 
 }
