@@ -27,8 +27,13 @@ private:
     Fl_Button* fight;
     Fl_Button* pokemon;
 
+    Fl_Box* enemy_health;
+    Fl_Box* ally_health;
+
     Fl_Box* battle_log;
     Fl_Box* battle_menu;
+    Fl_Box* moves_menu;
+
 
     Fl_Box* rival_pokemon;
     Fl_Box* ally_pokemon;
@@ -54,6 +59,8 @@ public:
 
     bool flee();
     static void fleed(Fl_Widget* w, void* user_data);
+
+    static void moves(Fl_Widget* w, void* user_data);
 
     void load_pokedex();
     void load_gui_elements();
