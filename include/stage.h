@@ -16,7 +16,6 @@
 #include <FL/fl_ask.H>
 
 
-
 //#include <FL/x.H> 
 
 using namespace std;
@@ -77,7 +76,6 @@ private:
     int pokemon_font;
 
 public:
-
     stage();
     ~stage();
 
