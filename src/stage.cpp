@@ -8,16 +8,16 @@ stage::stage(): knockout(false), escape(false), pokemon_font(FL_HELVETICA){
 
 
 
-   
-    pokemon_font = FL_HELVETICA;
-    for (int i = 0; i < Fl::set_fonts(); i++) {
-        string font_name = Fl::get_font_name(i);
-        if (font_name.find("Pokemon Classic") != string::npos) {
-            pokemon_font = i;
-            break;
-        }
-    }
-
+//   
+//     pokemon_font = FL_HELVETICA;
+//     for (int i = 0; i < Fl::set_fonts(); i++) {
+//         string font_name = Fl::get_font_name(i);
+//         if (font_name.find("Pokemon Classic") != string::npos) {
+//             pokemon_font = i;
+//             break;
+//         }
+//     }
+// 
 
 
 
@@ -125,7 +125,7 @@ void stage::manage_pokemon_debut(){
 void stage::manage_trainer_debut(){
     trainer = new Fl_Box(70, 200, 150, 150);
     trainer->box(FL_NO_BOX);
-    trainer->image(player_sprites[0]);
+    trainer->image(player_sprites[1]);
     //trainer->hide();
 
     npc = new Fl_Box(400, 20, 150, 150);

@@ -1,104 +1,118 @@
-.model small
-.stack 100h
+section .data
+    currentHealth db 'Salud actual: ', 0
+    damageReceived db 'Danio recibido: ', 0
+    newline db 10, 0
 
-.data
-    currentHealth db 'Salud actual: $'
-    damageReceived db 'Danio recibido: $'
-.code
+section .text
+    global main
+    extern printf
+
 main:
-    ; Inicializar el segmento de datos
-    mov ax, @data
-    mov ds, ax
-
-    mov cx, 5
+    ; Inicializar valores
+    mov rcx, 5
     call initValues
     call ciclo
 
 ciclo:
-    cmp cx,0
+    cmp rcx, 0
     je fin
-    dec cx
+    dec rcx
 
-    ; Imprimir el primer prompt: "Salud actual: "
-    mov ah, 09h
-    lea dx, currentHealth
-    int 21h
+    ; Imprimir "Salud actual: "
+    mov rdi, currentHealth
+    xor rax, rax
+    call printf
 
     call printNumb
     call attack
-    jg ciclo
+    jmp ciclo
 
 initValues:
-    mov ax, 100
-    mov bx, 129
+    mov rax, 100
+    mov rbx, 129
     ret
+
 attack:
-    push cx
-    push ax
-    mov cx, 10
+    push rcx
+    push rax
 
-    mov ah, 0        ; INT 1Ah -> CX:DX = tics desde medianoche
-    int 1Ah
+    ; Obtener valor "aleatorio" usando la hora del sistema
+    mov rax, 201       ; syscall gettimeofday
+    xor rdi, rdi       ; timeval *tv = NULL (no lo necesitamos)
+    xor rsi, rsi       ; timezone *tz = NULL
+    syscall
 
-    mov ax, dx       ; AX = valor variable (tics bajo 16 bits)
-    xor dx, dx
-    div cx           ; AX = AX/CX, DX = AX mod CX
-    mov ax, dx       ; AX = resto = valor aleatorio
-    sub bx,ax
+    ; Usar los nanosegundos (rdx) para obtener un valor "aleatorio"
+    mov rax, rdx
+    xor rdx, rdx
+    mov rcx, 10
+    div rcx            ; RDX = RAX % RCX (0-9)
+    mov rax, rdx       ; RAX = valor entre 0-9
 
-    pop ax
-    pop cx
+    sub rbx, rax       ; Reducir salud
+
+    pop rax
+    pop rcx
     ret
 
 printNumb:
-    push ax
-    push cx
-    push bx
+    push rax
+    push rcx
+    push rbx
 
-    mov dx,0
-    mov ax, bx
-    mov cx, 100
-    div cx
-    mov cx,dx
+    ; Convertir e imprimir el número de 3 dígitos en RBX
+    mov rax, rbx
+    mov rcx, 100
+    xor rdx, rdx
+    div rcx            ; RAX = centenas, RDX = resto
     add al, '0'
-    mov dl, al
-    mov ah, 02h
-    int 21h
+    mov rdi, rax       ; Guardar centena temporalmente
 
-    mov dx,0
-    mov ax,cx
-    mov cx, 10
-    div cx
-    mov cx,dx
+    ; Imprimir centena
+    push rdx           ; Guardar resto
+    mov rsi, rdi
+    mov rdi, digitFormat
+    xor rax, rax
+    call printf
+    pop rdx            ; Recuperar resto
+
+    mov rax, rdx
+    mov rcx, 10
+    xor rdx, rdx
+    div rcx            ; RAX = decenas, RDX = unidades
     add al, '0'
-    mov dl, al
-    mov ah, 02h
-    int 21h
+    mov rdi, rax       ; Guardar decena temporalmente
 
-    mov dx,0
-    mov ax,cx
-    add al, '0'
-    mov dl, al
-    mov ah, 02h
-    int 21h
+    ; Imprimir decena
+    push rdx           ; Guardar unidades
+    mov rsi, rdi
+    mov rdi, digitFormat
+    xor rax, rax
+    call printf
+    pop rdx            ; Recuperar unidades
 
-    mov ah, 02h
-    mov dl, 0Dh
-    int 21h
+    ; Imprimir unidad
+    add dl, '0'
+    mov rsi, rdx
+    mov rdi, digitFormat
+    xor rax, rax
+    call printf
 
-    mov ah, 02h
-    mov dl, 0Ah
-    int 21h
+    ; Imprimir nueva línea
+    mov rdi, newline
+    xor rax, rax
+    call printf
 
-    pop bx
-    pop cx
-    pop ax
+    pop rbx
+    pop rcx
+    pop rax
     ret
 
-
-
-
 fin:
-    mov ah, 4Ch
-    int 21h
-end main
+    ; Salir del programa
+    mov rax, 60        ; syscall exit
+    xor rdi, rdi       ; status 0
+    syscall
+
+section .data
+    digitFormat db "%c", 0
