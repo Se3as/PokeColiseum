@@ -1,10 +1,14 @@
 section .bss
     ; Reserve space for the health of each Pokemon
-    healthPokemon1 resb 4
-    healthPokemon2 resb 4
-
-    ; Reserve space for the damage received
-    damageReceived resb 4
+    buffer resb 20  ; Buffer for input
+    number resq 1 ; Reserve space for a number (64 bits)
+    outbuffer resb 20 ; Output buffer for printing numbers
+    r8 resq 1 ; Max health of Pokemon 1
+    r9 resq 1 ; Max health of Pokemon 2
+    r10 resq 1 ; Current health of Pokemon 1
+    r11 resq 1 ; Current health of Pokemon 2
+    r12 resq 1 ; Damage received by Pokemon 1
+    r13 resq 1 ; Damage received by Pokemon 2
 
 section .data
     ; Messages
@@ -29,47 +33,84 @@ main:
 
  
 battle_loop:
-    ; Main battle loop
-    call print_CurrentHealthPokemon1
+    ; Print damage received of Pokemon 1
+    call print_damageReceived
+    call read_int
+    mov r12, rax ; Store the damage received by Pokemon 1 in r12
     call print_Newline
-    call print_CurrentHealthPokemon2
+    ; Update health of Pokemon 1
+    sub r10, r12
+    cmp r10, 0
+    jl pokemon1_fainted
+    ; Print updated health of Pokemon 1
+    call print_currentHealthPokemon1
+    mov rax, r10
+    call print_int
     call print_Newline
-
-
-
+    call clear_buffer
+    ; Update health of Pokemon 2
+    call print_damageReceived
+    call read_int
+    mov r13, rax ; Store the damage received by Pokemon 2 in r13
+    call print_Newline
+    sub r11, r13
+    cmp r11, 0
+    jl pokemon2_fainted
+    ; Print updated health of Pokemon 2
+    call print_currentHealthPokemon2
+    mov rax, r11
+    call print_int
+    call print_Newline
+    call clear_buffer
+    jmp battle_loop
 
 initialize_pokemon_health:
-    call print_GetMaxHealthPokemon1
-    call read_input
-    mov r8, rax ; Store the max health of Pokemon 1 in r8
+    ; Initialize the health of both Pokemon
+    call print_maxHealthPokemon1
+    call read_int
+    mov r10, rax ; Max health of Pokemon 1 (Charmander)
     call print_Newline
-    call clear_buffer
-    call print_GetMaxHealthPokemon2
-    call read_input
-    mov r9, rax ; Store the max health of Pokemon 2 in r9
+
+    call print_maxHealthPokemon2
+    call read_int
+    mov r11, rax ; Max health of Pokemon 2 (Totodile)
     call print_Newline
-    call clear_buffer
     ret
 
-section .data
-    maxHealthPokemon1 db 'Digite la salud total del pokemon 1: ', 0
-    len_maxHealthPokemon1 equ $ - maxHealthPokemon1
-    maxHealthPokemon2 db 'Digite la salud total del pokemon 2: ', 0
-    len_maxHealthPokemon2 equ $ - maxHealthPokemon2
-    currentHealthPokemon1 db 'Salud actual del pokemon 1: ', 0
-    len_currentHealthPokemon1 equ $ - currentHealthPokemon1
-    currentHealthPokemon2 db 'Salud actual del pokemon 2: ', 0
-    len_currentHealthPokemon2 equ $ - currentHealthPokemon2
-    damageReceived db 'Damage recibido: ', 0
-    len_damageReceived equ $ - damageReceived
-    newline db 10, 0
-    len_newline equ $ - newline
 
-section .text
-    global _start
+pokemon1_fainted:
+    ; Pokemon 1 has fainted
+    call print_currentHealthPokemon1
+    mov rax, 0
+    call print_int
+    call print_Newline
+    call clear_buffer
+    call print_damageReceived
+    mov rax, r12
+    call print_int
+    call print_Newline
+    jmp end_battle
+pokemon2_fainted:
+    ; Pokemon 2 has fainted
+    call print_currentHealthPokemon2
+    mov rax, 0
+    call print_int
+    call print_Newline
+    call clear_buffer
+    call print_damageReceived
+    mov rax, r13
+    call print_int
+    call print_Newline
+end_battle:
+    ; End battle
+    call print_Newline
+    call print_damageReceived
+    mov rax, 0
+    call print_int
+    call print_Newline
+    jmp end_program
 
-; Función genérica para imprimir (64 bits)
-; Parámetros: rsi = mensaje, rdx = longitud
+
 printmessage:
     mov rax, 1          ; sys_write
     mov rdi, 1          ; stdout
@@ -113,40 +154,7 @@ print_newline:
     call printmessage
     ret
 
-_start:
-    call print_maxHealthPokemon1
-    call print_newline
-    
-    call print_maxHealthPokemon2
-    call print_newline
-    
-    call print_currentHealthPokemon1
-    call print_newline
-    
-    call print_currentHealthPokemon2
-    call print_newline
-    
-    call print_damageReceived
-    call print_newline
 
-    ; End program
-    mov rax, 60         ; sys_exit
-    xor rdi, rdi        ; Exit code 0
-    syscall
-
-print_int:
-    mov rax, r10        ; Value to print
-    lea rsi, [buffer+19] ; Pointer at the end of the buffer
-    mov byte [rsi], 10   ; Newline character
-    mov rbx, 10          ; Decimal conversion base
-    
-    ; Case of 0
-    test rax, rax
-    jnz .convert_loop
-    dec rsi
-    mov byte [rsi], '0'
-    jmp .print
-    
 .convert_loop:
     xor rdx, rdx        ; Clean RDX for division
     div rbx             ; RAX = Quotient , RDX = rest
@@ -167,37 +175,6 @@ print_int:
     syscall
     ret
 
-read_input:
-    mov rax, 0             ; syscall read  
-    mov rdi, 0             ; stdin
-    mov rsi, buffer        ; rsi points to the buffer
-    mov rdx, 4             ; read 4 bytes
-    syscall
-    
-    mov rsi, buffer
-    call atoi
-
-    ; Store the result in rax
-
-atoi:
-    xor rax, rax
-    movzx rdx, byte [rsi]
-    sub rdx, '0'
-    imul rax, 10
-    add rax, rdx
-    
-    movzx rdx, byte [rsi+1]
-    sub rdx, '0'
-    imul rax, 10
-    add rax, rdx
-    
-    movzx rdx, byte [rsi+2]
-    sub rdx, '0'
-    imul rax, 10
-    add rax, rdx
-    ret
-
-
 clear_buffer:
     ; Clear the buffer
     lea rdi, [buffer]
@@ -205,3 +182,76 @@ clear_buffer:
     xor al, al
     rep stosb
     ret
+
+
+read_int:
+    ; syscall read
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, buffer
+    mov rdx, 20
+    syscall
+
+    ; convertir ASCII → número
+    xor rcx, rcx        ; resultado
+    xor rbx, rbx        ; índice
+
+.read_loop:
+    mov al, [buffer + rbx]
+    cmp al, 10          ; '\n'
+    je .done
+    sub al, '0'
+    imul rcx, rcx, 10
+    add rcx, rax
+    inc rbx
+    jmp .read_loop
+
+.done:
+    mov rax, rcx        ; devolver resultado en RAX
+    ret
+
+; ------------------------------------------
+; print_int: imprime número en RAX
+; ------------------------------------------
+print_int:
+    mov rcx, rax         ; copia de RAX para dividir
+    mov rsi, outbuf + 19
+    mov byte [rsi], 10   ; '\n'
+    dec rsi
+
+.convert_loop:
+    xor rdx, rdx
+    mov rbx, 10
+    div rbx              ; RAX / 10 → RAX=cociente, RDX=resto
+    add dl, '0'
+    mov [rsi], dl
+    dec rsi
+    test rax, rax
+    jnz .convert_loop
+
+    inc rsi
+    ; write syscall
+    mov rax, 1
+    mov rdi, 1
+    mov rdx, outbuf + 20
+    sub rdx, rsi
+    mov rsi, rsi
+    syscall
+    ret
+
+
+initialize_pokemon_health:
+    ; Initialize the health of both Pokemon
+    mov r10, 0        ; Max health of Pokemon 1 (Charmander)
+    mov r11, 0        ; Max health of Pokemon 2 (Totodile)
+
+    ret
+
+_start:
+    call initialize_pokemon_health
+    call battle_loop
+
+    ; Exit the program
+    mov rax, 60       ; syscall: exit
+    xor rdi, rdi      ; status: 0
+    syscall
