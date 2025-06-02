@@ -35,6 +35,9 @@ private:
     Fl_Box* enemy_health2;
     Fl_Box* ally_health2;
 
+    Fl_Box* enemy_hp_bar;
+    Fl_Box* ally_hp_bar;
+
     Fl_Box* enemy_pokeball1;
     Fl_Box* enemy_pokeball2;
     Fl_Box* enemy_pokeball3;
@@ -51,6 +54,8 @@ private:
 
 
     Fl_Box* battle_log;
+    Fl_Button* battle_text;
+
     Fl_Box* battle_menu;
     Fl_Box* moves_menu;
 
@@ -58,7 +63,9 @@ private:
     Fl_Box* npc;
 
     Fl_Box* rival_pokemon;
+    Fl_Box* rival_hp;
     Fl_Box* ally_pokemon;
+    Fl_Box* ally_hp;
 
     vector<Fl_Image*> player_sprites;
     vector<Fl_Image*> npc_sprites;
@@ -69,11 +76,16 @@ private:
 
     bool knockout;
     bool escape;
+    bool show_player_actions;
+    bool show_moves_info;
+    bool show_trainers;
+    bool show_pokemon;
 
     static constexpr int number_of_npc = 14;
     static constexpr int enemy_sprites_height = 14;
 
     int pokemon_font;
+
 
 public:
     stage();
@@ -88,17 +100,29 @@ public:
     bool flee();
     static void fleed(Fl_Widget* w, void* user_data);
 
-    static void moves(Fl_Widget* w, void* user_data);
-
     int random_npc_spawn();
+
+     static void progress_scenario(Fl_Widget* w, void* user_data);
+
+    static void show_moves(Fl_Widget* w, void* user_data);
+
+    static void send_pokemon(Fl_Widget* w, void* user_data);
+
+
+    void load_battle_log();
+    void load_trainer_debut();
+    void load_status_bars();
+    void load_trainer_actions();
 
     void load_trainers();
     void load_pokedex();
+
     void load_gui_elements();
-    
-    void manage_status_bars();
-    void manage_trainer_debut();
-    void manage_battle_log();
-    void manage_trainer_actions();
+
+
+    void update_battle_log();
+
     void manage_pokemon_debut();
+
+    
 };
