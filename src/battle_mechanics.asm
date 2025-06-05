@@ -210,9 +210,6 @@ read_int:
     mov rax, rcx        ; devolver resultado en RAX
     ret
 
-; ------------------------------------------
-; print_int: imprime número en RAX
-; ------------------------------------------
 print_int:
     mov rcx, rax         ; copia de RAX para dividir
     mov rsi, outbuf + 19
