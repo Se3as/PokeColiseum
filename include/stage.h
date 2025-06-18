@@ -15,9 +15,6 @@
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
 
-
-//#include <FL/x.H> 
-
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -151,8 +148,6 @@ public:
     void update_battle_log();
 
     void load_pokemon_debut();
-
-    void manage_pokemon_moves();
 
     void precombat_phase();
 

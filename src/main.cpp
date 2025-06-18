@@ -1,4 +1,3 @@
-//Hello, world
 #include "battle.h"
 
 int main(){
