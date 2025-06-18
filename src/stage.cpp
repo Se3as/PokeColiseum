@@ -420,33 +420,36 @@ void stage::load_trainer_actions(){
     battle_menu->hide();
 
     
-    esc = new Fl_Button(533, 430, 50, 20, "RUN");
+    esc = new Fl_Button(510, 430, 100, 25, "RUN");
     esc->box(FL_FLAT_BOX);
     esc->color(FL_WHITE);
     esc->labelfont(pokemon_font);
     esc->labelcolor(FL_BLACK);
     esc->labelsize(22);
     esc->clear_visible_focus();
+    esc->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
     esc->callback(fleed, this);
     esc->hide();
 
-    fight = new Fl_Button(410, 380, 50, 20, "FIGHT");
+    fight = new Fl_Button(375, 380, 120, 25, "FIGHT");
     fight->box(FL_FLAT_BOX);
     fight->color(FL_WHITE);
     fight->labelfont(pokemon_font);
     fight->labelcolor(FL_BLACK);
     fight->labelsize(22);
     fight->clear_visible_focus();
+    fight->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
     fight->callback(manage_moves, this);
     fight->hide();
 
-    pokemon = new Fl_Button(540, 380, 50, 20, "PkMn");
+    pokemon = new Fl_Button(510, 380, 100, 25, "PkMn");
     pokemon->box(FL_FLAT_BOX);
     pokemon->color(FL_WHITE);
     pokemon->labelfont(pokemon_font);
     pokemon->labelcolor(FL_BLACK);
     pokemon->labelsize(22);
     pokemon->clear_visible_focus();
+    pokemon->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
     pokemon->callback(send_pokemon, this);
     pokemon->hide();
 
