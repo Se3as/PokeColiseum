@@ -1,13 +1,11 @@
 #include "battle.h"
 
-battle::battle(): turn(1){
-
-}
+battle::battle(){}
 
 void battle::run(){
     match.show();
     
-
+    
     while(!match.ko() && !match.flee()){
         Fl::wait();
     }

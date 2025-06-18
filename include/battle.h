@@ -10,7 +10,6 @@ class battle {
 
 private:
     stage match;
-    int turn;
 
 public:
     battle();
