@@ -29,6 +29,9 @@ private:
     Fl_Button* fight;
     Fl_Button* pokemon;
 
+    Fl_Button* gender_male;
+    Fl_Button* gender_female;
+
     Fl_Button* move_info;
 
     Fl_Box* enemy_health;
@@ -90,6 +93,7 @@ private:
     bool show_trainers;
     bool show_pokemon;
     bool show_moves;
+    bool gender_selected;
 
     static constexpr int number_of_npc = 14;
     static constexpr int enemy_sprites_height = 14;
@@ -103,12 +107,16 @@ private:
 
     int log_stage;
 
+    int trainer_gender;
+
 public:
     stage();
     ~stage();
 
     void show();
     void hide();
+
+    void battle_loader();
 
     bool ko();
     static void koed(Fl_Widget* w, void* user_data);
@@ -146,11 +154,13 @@ public:
 
     void manage_pokemon_moves();
 
+    void precombat_phase();
 
     static void manage_attack(Fl_Widget* w, void* user_data);
     
     static void execute_attack(Fl_Widget* w, void* user_data);
 
+    static void set_gender(Fl_Widget* w, void* user_data);
 
     void set_ally_pokemon(int pokedex);
     int get_ally_pokemon();
