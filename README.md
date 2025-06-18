@@ -10,5 +10,6 @@ Authors:
 
 Juan Sebastian Loaiza
 Sergio Solano
+Adrian Arias Vargas
 
 All intelectual property belongs to the pokemon company (PLEASE DONT SUE US!)
