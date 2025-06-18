@@ -7,6 +7,7 @@ battle::battle(): turn(1){
 void battle::run(){
     match.show();
     
+    
 
     while(!match.ko() && !match.flee()){
         Fl::wait();

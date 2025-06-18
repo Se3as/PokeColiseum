@@ -1,14 +1,29 @@
 #include "stage.h"
 
-stage::stage(): knockout(false), escape(false), show_player_actions(false), show_moves_info(false), show_trainers(true), show_pokemon(false), pokemon_font(FL_HELVETICA){
+stage::stage(): knockout(false), escape(false), attack(0), log_stage(0), ally_pokedex(0), rival_pokedex(1), show_moves(false), show_player_actions(false), show_moves_info(false), show_trainers(true), show_pokemon(false), pokemon_font(FL_HELVETICA){
 
+    load_frame();
+    load_poke_font();
+    load_trainers();
+    load_pokedex();
+    load_gui_elements();
+    load_trainer_debut();
+    load_status_bars();
+
+    load_battle_log();
+    load_trainer_actions();
+
+    load_pokemon_debut();
+    load_moves();
+
+}
+
+void stage::load_frame(){
     frame = new Fl_Window(640, 480, "Pokémon Coliseum");
     frame->color(FL_WHITE);
+}
 
-
-
-
-   
+void stage::load_poke_font(){
     pokemon_font = FL_HELVETICA;
     for (int i = 0; i < Fl::set_fonts(); i++) {
         string font_name = Fl::get_font_name(i);
@@ -17,34 +32,23 @@ stage::stage(): knockout(false), escape(false), show_player_actions(false), show
             break;
         }
     }
-
-
-
-
-
-    load_trainers();
-    load_pokedex();
-    load_gui_elements();
-    load_trainer_debut();
-    load_status_bars();
-
-
-    load_battle_log();
-    load_trainer_actions();
-
-
-
-
-
-    manage_pokemon_debut();
-
-    
-
-
-
 }
 
+void stage::set_ally_pokemon(int pokedex){
+    //USAR ENSAMBLADOR PARA POSIBLES POKEMON ADICIONALES
+}
 
+int stage::get_ally_pokemon(){
+    return ally_pokedex;
+}
+
+void stage::set_rival_pokemon(int pokedex){
+    //USAR ENSAMBLADOR PARA POSIBLES POKEMON ADICIONALES
+}
+
+int stage::get_rival_pokemon(){
+    return rival_pokedex;
+}
 
 
 bool stage::ko(){
@@ -55,8 +59,6 @@ void stage::koed(Fl_Widget* w, void* user_data){
     stage* battlefield = static_cast<stage*>(user_data);
     battlefield->escape = true;
 }
-
-
 
 bool stage::flee(){
     return escape;
@@ -88,26 +90,52 @@ void stage::progress_scenario(Fl_Widget* w, void* user_data){
 
     } 
 
-    if(battlefield->show_player_actions == true && battlefield->show_moves_info == true){
+    if(battlefield->show_player_actions == false && battlefield->show_pokemon == true && battlefield->show_moves == true){
+        battlefield->show_player_actions = true;
+        battlefield->show_moves = false;
         battlefield->show_moves_info = false;
-        
-        battlefield->moves_menu->hide();
 
-        battlefield->battle_menu->show();
-        battlefield->esc->show();
         battlefield->fight->show();
+        battlefield->esc->show();
         battlefield->pokemon->show();
+
+        battlefield->moves_menu->hide();
+        battlefield->move1->hide();
+        battlefield->move2->hide();
+        battlefield->move3->hide();
+        battlefield->move4->hide();
+        battlefield->move_info->hide();
+
+        battlefield->log_stage = 2;
+        battlefield->update_battle_log();
     }
-
-
 }
 
 //manages the visibility of moves info
-void stage::show_moves(Fl_Widget* w, void* user_data){
+void stage::manage_moves(Fl_Widget* w, void* user_data){
     stage* battlefield = static_cast<stage*>(user_data);
-    battlefield->moves_menu->show();
-    battlefield->show_moves_info = true;
+    
+    battlefield->log_stage = 2;
+    battlefield->update_battle_log();
+
+    if(battlefield->show_pokemon == true){
+        battlefield->show_moves_info = true;
+        battlefield->show_moves = true;
+        battlefield->show_player_actions = false;
+
+        battlefield->fight->hide();
+        battlefield->esc->hide();
+        battlefield->pokemon->hide();
+
+        battlefield->moves_menu->show();
+        battlefield->move1->show();
+        battlefield->move2->show();
+        battlefield->move3->show();
+        battlefield->move4->show();
+    }
+
 }
+
 
 //manages the visibility of moves info
 void stage::send_pokemon(Fl_Widget* w, void* user_data){
@@ -129,38 +157,38 @@ void stage::send_pokemon(Fl_Widget* w, void* user_data){
         battlefield->ally_health2->hide();
         battlefield->ally_hp->show();
         battlefield->ally_hp_bar->show();
+        battlefield->ally_name->show();
 
         battlefield->rival_pokemon->show();
         battlefield->enemy_health2->hide();
-        //battlefield->rival_hp->show();
         battlefield->enemy_hp_bar->show();
+        battlefield->enemy_name->show();
         
+        battlefield->log_stage = 1;
         battlefield->update_battle_log();
     }
 
 }
 
 
-
-
 //refresh batle log message
 void stage::update_battle_log(){
     
-    battle_text->copy_label(" What would \n TOTODILE do?");
-
-    //what would tottodile do??
+    if(log_stage == 1){
+        battle_text->copy_label(" Go! TOTODILE!");
+    } else if(log_stage == 2){
+        battle_text->copy_label(" What would \n TOTODILE do?");
+    } else if(log_stage == 3){
+        battle_text->copy_label(" TOTODILE \n used SLASH!");
+    } else if(log_stage == 4){
+        battle_text->copy_label(" Enemy CHARMANDER \n used EMBER!");      //<--- ACTUALIZAR CON INFO DEL BACK
+    }
 
 }
 
 
-//FALTA LA BARRA VERDE PARA REFLEJAR LA VIDA DE LOS POPKEMON
-
-
-
-
-
 //carga a los pokemon que van a entrar en el campo
-void stage::manage_pokemon_debut(){
+void stage::load_pokemon_debut(){
     rival_pokemon = new Fl_Box(400, 20, 150, 150);
     rival_pokemon->box(FL_NO_BOX);
     rival_pokemon->image(pokemon_sprites["charmander$"]);
@@ -173,16 +201,105 @@ void stage::manage_pokemon_debut(){
 }
 
 
+void stage::load_moves(){
+    move1 = new Fl_Button(390, 368, 200, 20, "SLASH");
+    move1->box(FL_FLAT_BOX);
+    move1->color(FL_WHITE);
+    move1->labelfont(pokemon_font);
+    move1->labelcolor(FL_BLACK);
+    move1->labelsize(18);
+    move1->clear_visible_focus();
+    move1->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+    move1->callback(manage_attack, this);
+    move1->hide();
+
+    move2 = new Fl_Button(390, 392, 200, 20, "HYDRO PUMP");
+    move2->box(FL_FLAT_BOX);
+    move2->color(FL_WHITE);
+    move2->labelfont(pokemon_font);
+    move2->labelcolor(FL_BLACK);
+    move2->labelsize(18);
+    move2->clear_visible_focus();
+    move2->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+    move2->callback(manage_attack, this);
+    move2->hide();
+
+    move3 = new Fl_Button(390, 416, 200, 20, "ICE FANG");
+    move3->box(FL_FLAT_BOX);
+    move3->color(FL_WHITE);
+    move3->labelfont(pokemon_font);
+    move3->labelcolor(FL_BLACK);
+    move3->labelsize(18);
+    move3->clear_visible_focus();
+    move3->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+    move3->callback(manage_attack, this);
+    move3->hide();
+
+    move4 = new Fl_Button(390, 440, 200, 20, "WATER GUN");
+    move4->box(FL_FLAT_BOX);
+    move4->color(FL_WHITE);
+    move4->labelfont(pokemon_font);
+    move4->labelcolor(FL_BLACK);
+    move4->labelsize(18);
+    move4->clear_visible_focus();
+    move4->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+    move4->callback(manage_attack, this);
+    move4->hide();
+
+    move_info = new Fl_Button(275, 290, 220, 60);
+    move_info->box(FL_FLAT_BOX);
+    move_info->color(FL_WHITE);
+    move_info->labelfont(pokemon_font);
+    move_info->labelcolor(FL_BLACK);
+    move_info->labelsize(18);
+    move_info->clear_visible_focus();
+    move_info->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+    move_info->callback(execute_attack, this);
+    move_info->hide();
+}
 
 
-//FALTA FUNCION PARA ACTUALIZAR LA VIDA Y BARRA DE VIDA CON LA INFORMACION DEL BACKEND
+void stage::manage_attack(Fl_Widget* w, void* user_data){
+    stage* battlefield = static_cast<stage*>(user_data);
+
+    if(w == battlefield->move1){
+        battlefield->move_info->copy_label("TYPE/ NORMAL\nPOWER: 60");
+        battlefield->move_info->show();
+        battlefield->attack == 1;
+
+    } else if(w == battlefield->move2){
+        battlefield->move_info->copy_label("TYPE/ WATER\nPOWER: 120");            //<--- ACTIALIZAR LA INFO EL MOVE CON EL BACK
+        battlefield->move_info->show();
+        battlefield->attack == 2;
+
+    } else if(w == battlefield->move3){
+        battlefield->move_info->copy_label("TYPE/ ICE\nPOWER: 60");
+        battlefield->move_info->show();
+        battlefield->attack == 3;
+
+    } else if(w == battlefield->move4){
+        battlefield->move_info->copy_label("TYPE/ WATER\nPOWER: 20");
+        battlefield->move_info->show();
+        battlefield->attack == 4;
+
+    }
+}
+
+void stage::execute_attack(Fl_Widget* w, void* user_data){
+    stage* battlefield = static_cast<stage*>(user_data);
+
+    if(battlefield->attack == 1){
+        //EXTERN PARA CALCULAR EL DAMAGE
 
 
 
+        //LUEGO ATAQUE Y CLACULO DE DAMAGE RIVAL
 
 
+        //FALTA FUNCION PARA ACTUALIZAR LA VIDA Y BARRA DE VIDA CON LA INFORMACION DEL BACKEND
 
-
+    } 
+}
 
 
 
@@ -233,16 +350,16 @@ void stage::load_status_bars(){
     enemy_hp_bar->color(FL_GREEN);
     enemy_hp_bar->hide();
 
-    // rival_hp = new Fl_Box(460, 290, 50, 50);
-    // rival_hp->box(FL_FLAT_BOX);
-    // rival_hp->color(FL_WHITE);
-    // rival_hp->labelfont(pokemon_font);
-    // rival_hp->labelcolor(FL_BLACK);
-    // rival_hp->labelsize(22);
-    // rival_hp->clear_visible_focus();
-    // rival_hp->align(FL_ALIGN_TOP_LEFT | FL_ALIGN_INSIDE);
-    // rival_hp->copy_label("50" "/" "50");
-    // rival_hp->hide();
+    enemy_name = new Fl_Box(10, 5, 157, 7);
+    enemy_name->box(FL_NO_BOX);
+    enemy_name->label();
+    enemy_name->labelfont(pokemon_font);
+    enemy_name->labelcolor(FL_BLACK);
+    enemy_name->labelsize(22);
+    enemy_name->clear_visible_focus();
+    enemy_name->align(FL_ALIGN_TOP_LEFT | FL_ALIGN_INSIDE);
+    enemy_name->copy_label("CHARMANDER");
+    enemy_name->hide();
 
     enemy_pokeball1 = new Fl_Box(205, 65, gui_elements["pokeball"]->w(), gui_elements["pokeball"]->h());
     enemy_pokeball1->box(FL_FLAT_BOX);
@@ -264,6 +381,17 @@ void stage::load_status_bars(){
     ally_hp_bar->color(FL_GREEN);
     ally_hp_bar->hide();
 
+    ally_name = new Fl_Box(400, 210, 157, 7);
+    ally_name->box(FL_NO_BOX);
+    ally_name->label();
+    ally_name->labelfont(pokemon_font);
+    ally_name->labelcolor(FL_BLACK);
+    ally_name->labelsize(22);
+    ally_name->clear_visible_focus();
+    ally_name->align(FL_ALIGN_TOP_LEFT | FL_ALIGN_INSIDE);
+    ally_name->copy_label("TOTODILE");
+    ally_name->hide();
+
     ally_hp = new Fl_Box(460, 290, 50, 50);
     ally_hp->box(FL_FLAT_BOX);
     ally_hp->color(FL_WHITE);
@@ -281,7 +409,6 @@ void stage::load_status_bars(){
     ally_pokeball1->image(gui_elements["pokeball"]);
 
 }
-
 
 
 //loads the buttons for the game to be played
@@ -310,7 +437,7 @@ void stage::load_trainer_actions(){
     fight->labelcolor(FL_BLACK);
     fight->labelsize(22);
     fight->clear_visible_focus();
-    fight->callback(show_moves, this);
+    fight->callback(manage_moves, this);
     fight->hide();
 
     pokemon = new Fl_Button(540, 380, 50, 20, "PkMn");
@@ -417,8 +544,6 @@ void stage::load_gui_elements(){
 
 
 }
-
-
 
 void stage::show(){
     frame->show();

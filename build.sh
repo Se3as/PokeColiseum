@@ -26,8 +26,7 @@ if [ $? -eq 0 ]; then
 
     echo
     ./game
-    echo "Press Enter to continue..."
-    read
+    
 else
     echo "❌ Error de compilación"
 fi
