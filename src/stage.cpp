@@ -1,9 +1,24 @@
 #include "stage.h"
 
+extern "C" {
+    int getPokemonHealth(int id);
+    int getPokemonType(int id);
+    int getMoveDamage(int moveId);
+    int getMoveType(int moveId);
+    int get_effectiveness(int tipo_atacante, int tipo_defensor);
+    int calculateDamage(int health, int damage);
+    int ai_random_choice();
+    int ai_random_choice_1_to_4();
+}
+
 stage::stage(): knockout(false), escape(false), gender_selected(false), attack(0), log_stage(0), ally_pokedex(0), rival_pokedex(1), show_moves(false), show_player_actions(false), show_moves_info(false), show_trainers(false), show_pokemon(false), pokemon_font(FL_HELVETICA){
 
-    battle_loader();
+    ally_health_val = getPokemonHealth(ally_pokedex);
+    rival_health_val = getPokemonHealth(rival_pokedex);
+    ally_current_hp = ally_health_val;
+    rival_current_hp = rival_health_val;
 
+    battle_loader();
 }
 
 
@@ -289,22 +304,22 @@ void stage::manage_attack(Fl_Widget* w, void* user_data){
     if(w == battlefield->move1){
         battlefield->move_info->copy_label("TYPE/ NORMAL\nPOWER: 60");
         battlefield->move_info->show();
-        battlefield->attack == 1;
+        battlefield->attack = 1;
 
     } else if(w == battlefield->move2){
         battlefield->move_info->copy_label("TYPE/ WATER\nPOWER: 120");            //<--- ACTIALIZAR LA INFO EL MOVE CON EL BACK
         battlefield->move_info->show();
-        battlefield->attack == 2;
+        battlefield->attack = 2;
 
     } else if(w == battlefield->move3){
         battlefield->move_info->copy_label("TYPE/ ICE\nPOWER: 60");
         battlefield->move_info->show();
-        battlefield->attack == 3;
+        battlefield->attack = 3;
 
     } else if(w == battlefield->move4){
         battlefield->move_info->copy_label("TYPE/ WATER\nPOWER: 20");
         battlefield->move_info->show();
-        battlefield->attack == 4;
+        battlefield->attack = 4;
 
     }
 }
@@ -312,17 +327,83 @@ void stage::manage_attack(Fl_Widget* w, void* user_data){
 void stage::execute_attack(Fl_Widget* w, void* user_data){
     stage* battlefield = static_cast<stage*>(user_data);
 
-    if(battlefield->attack == 1){
-        //EXTERN PARA CALCULAR EL DAMAGE
+    int totodile_moves[4] = {0, 4, 3, 6}; // IDs reales
+    int moveId = totodile_moves[battlefield->attack - 1];
+    printf("DEBUG - moveId: %d\n", moveId);
 
+    int damage = getMoveDamage(moveId);
+    printf("DEBUG - damage: %d\n", damage);
 
+    int moveType = getMoveType(moveId);
+    printf("DEBUG - moveType: %d\n", moveType);
+    
+    int rivalType = getPokemonType(battlefield->rival_pokedex);
+    printf("DEBUG - rivalType: %d\n", rivalType);
 
-        //LUEGO ATAQUE Y CLACULO DE DAMAGE RIVAL
+    int multiplier = get_effectiveness(moveType, rivalType);
+    printf("DEBUG - multiplier: %d\n", multiplier);
 
+    int realDamage = (damage * multiplier) / 100;
 
-        //FALTA FUNCION PARA ACTUALIZAR LA VIDA Y BARRA DE VIDA CON LA INFORMACION DEL BACKEND
+    int newHp = calculateDamage(battlefield->rival_current_hp, realDamage);
+    printf("DEBUG - newHp: %d\n", newHp);
+    battlefield->rival_current_hp = newHp;
 
-    } 
+    int barWidth = (157 * newHp) / battlefield->rival_health_val;
+    printf("DEBUG - barWidth: %d\n", barWidth);
+    battlefield->enemy_hp_bar->resize(91, 65, barWidth, 7);
+    printf("DEBUG - resize done\n");
+
+    char hp_str[10];
+    snprintf(hp_str, sizeof(hp_str), "%d/%d", newHp, battlefield->rival_health_val);
+    printf("DEBUG - snprintf done: %s\n", hp_str);
+
+    battlefield->enemy_health2->copy_label(hp_str);
+    printf("DEBUG - label copy done\n");
+
+    if (newHp == 0) {
+        battlefield->knockout = true;
+        battlefield->log_stage = 6;
+        battlefield->update_battle_log();
+        return;
+    }
+
+    // Turno CPU
+    int cpu_move_index = ai_random_choice_1_to_4() - 1;
+    int charmander_moves[4] = {1, 2, 0, 5};
+    int cpu_move = charmander_moves[cpu_move_index];
+    printf("DEBUG - cpu_move ID: %d\n", cpu_move);
+
+    int cpu_damage = getMoveDamage(cpu_move);
+    printf("DEBUG - cpu_damage: %d\n", cpu_damage);
+
+    int cpu_type = getMoveType(cpu_move);
+    printf("DEBUG - cpu_type: %d\n", cpu_type);
+
+    int ally_type = getPokemonType(battlefield->ally_pokedex);
+    printf("DEBUG - ally_type: %d\n", ally_type);
+
+    int cpu_multiplier = get_effectiveness(cpu_type, ally_type);
+    printf("DEBUG - cpu_multiplier: %d\n", cpu_multiplier);
+    battlefield->log_stage = 5;
+    battlefield->update_battle_log();
+    Fl::wait(1.0);
+
+    int cpu_real_dmg = (cpu_damage * cpu_multiplier) / 100;
+    int ally_new_hp = calculateDamage(battlefield->ally_current_hp, cpu_real_dmg);
+    battlefield->ally_current_hp = ally_new_hp;
+
+    int ally_barWidth = (150 * ally_new_hp) / battlefield->ally_health_val;
+    battlefield->ally_hp_bar->resize(453, 275, ally_barWidth, 7);
+    char ally_hp_str[10];
+    snprintf(ally_hp_str, sizeof(ally_hp_str), "%d/%d", ally_new_hp, battlefield->ally_health_val);
+    battlefield->ally_hp->copy_label(ally_hp_str);
+
+    if (ally_new_hp == 0) {
+        battlefield->knockout = true;
+        battlefield->log_stage = 7;
+        battlefield->update_battle_log();
+    }
 }
 
 

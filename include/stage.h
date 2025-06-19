@@ -108,6 +108,9 @@ private:
     int log_stage;
 
     int trainer_gender;
+    
+    int ally_health_val, rival_health_val;
+    int ally_current_hp, rival_current_hp;
 
 public:
     stage();
