@@ -1,24 +1,32 @@
 #include "battle.h"
+#include <chrono> 
+#include <thread> 
 
-battle::battle(): turn(1){
+using namespace std;
 
-}
+battle::battle(){}
 
 void battle::run(){
     match.show();
     
-    
-
     while(!match.ko() && !match.flee()){
+
+        while(match.trainers_turn() == false){
+            match.ai_attack(ai_make_a_move());
+        }
+
         Fl::wait();
     }
     
-    cout<<"Battle in progress..."<<endl;
-
-
     if(match.ko() || match.flee()){
-        match.hide();
-        Fl::check();
-    }
 
+            if(match.trainers_turn() == false){
+                cout << "Trainer won the pokemon battle!" << endl;
+            } else if(match.trainers_turn() == true){
+                 cout << "Rival won the pokemon battle!" << endl;
+            }
+
+            match.hide();
+            Fl::check();
+        }
 }
