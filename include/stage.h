@@ -14,12 +14,25 @@
 #include <FL/Fl_Multiline_Output.H>
 #include <FL/fl_draw.H>
 #include <FL/fl_ask.H>
+#include <chrono>
+#include <thread>
 
-
-//#include <FL/x.H> 
 
 using namespace std;
 namespace fs = std::filesystem;
+
+extern "C" int get_pokemon_original_hp(int id);
+extern "C" int get_pokemon_current_hp(int id);
+extern "C" int set_pokemon_hp(int id, int new_hp);
+extern "C" int get_move_damage(int move_id);
+extern "C" const char* get_move_type(int move_id);
+extern "C" const char* get_move_name(int move_id);
+extern "C" int calculate_combat_damage(int hp, int damage, int effectiveness);
+extern "C" const char* get_pokemon_name(int id);
+extern "C" int get_move_type_id(int move_id);
+extern "C" int get_effectiveness(int move_type_id, int pokemon_type_id);
+extern "C" int get_pokemon_type(int pokemon_id);
+
 
 class stage {
 
@@ -94,20 +107,33 @@ private:
     bool show_pokemon;
     bool show_moves;
     bool gender_selected;
+    bool trainer_turn;
+    bool new_pokemon;
+    bool attacking;
 
     static constexpr int number_of_npc = 14;
     static constexpr int enemy_sprites_height = 14;
 
     int pokemon_font;
 
-    int ally_pokedex;
-    int rival_pokedex;
+    int trainer_pokedex_id;
 
+    int rival_pokedex_id;
+   
     int attack;
+
+    int ai_chosen_attack;
 
     int log_stage;
 
     int trainer_gender;
+
+    int ally_pokeballs;
+    int rival_pokeballs;
+
+    int ending;
+
+    string gender_data;
 
 public:
     stage();
@@ -118,8 +144,16 @@ public:
 
     void battle_loader();
 
+    bool trainers_turn();
+
+    void ending_sequence();
+
+    int getEnding();
+    
+    void ai_attack(int ai_selected_attack);
+
     bool ko();
-    static void koed(Fl_Widget* w, void* user_data);
+    void koed();
 
     bool flee();
     static void fleed(Fl_Widget* w, void* user_data);
@@ -150,11 +184,13 @@ public:
 
     void update_battle_log();
 
+    void update_pokemon_health();
+
     void load_pokemon_debut();
 
-    void manage_pokemon_moves();
-
     void precombat_phase();
+
+    bool getAttacking();
 
     static void manage_attack(Fl_Widget* w, void* user_data);
     
@@ -162,9 +198,5 @@ public:
 
     static void set_gender(Fl_Widget* w, void* user_data);
 
-    void set_ally_pokemon(int pokedex);
-    int get_ally_pokemon();
-
-    void set_rival_pokemon(int pokedex);
-    int get_rival_pokemon();
+    void update_hp_bars(Fl_Box* bar, int original_hp, int current_hp, int full_width);
 };
