@@ -16,7 +16,7 @@ command -v nasm >/dev/null 2>&1 || { echo "❌ NASM no está instalado. Ejecutá
 # Flags
 FLTK_FLAGS=$(fltk-config --cxxflags)
 FLTK_LIBS=$(fltk-config --ldflags)
-EXTRA_LIBS="-lfltk_images"
+EXTRA_LIBS="-lfltk_images -lsfml-audio -lsfml-system"
 DEBUG_FLAGS="-g -Og"
 
 # Compilar todos los archivos ASM

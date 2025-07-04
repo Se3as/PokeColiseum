@@ -3,7 +3,7 @@
 stage::stage(): knockout(false), escape(false), trainer_turn(true), gender_selected(false),
      attack(0), ai_chosen_attack(0), attacking(false), log_stage(0), show_moves(false), show_player_actions(false), show_moves_info(false), 
      show_trainers(false), show_pokemon(false), pokemon_font(FL_HELVETICA), trainer_pokedex_id(1), 
-     rival_pokedex_id(0), ally_pokeballs(1), rival_pokeballs(1), new_pokemon(true)
+     rival_pokedex_id(0), ally_pokeballs(1), rival_pokeballs(1), new_pokemon(true), gender_data("Gold"), ending(0)
      {
 
     battle_loader();
@@ -68,6 +68,10 @@ int stage::random_npc_spawn(){
     return distrib(gen);
 }
 
+bool stage::getAttacking(){
+    return attacking;
+}
+
 //comando para progresar en la rita de acciones cuando el jugador clickea el log
 void stage::progress_scenario(Fl_Widget* w, void* user_data){
     stage* battlefield = static_cast<stage*>(user_data);
@@ -83,26 +87,32 @@ void stage::progress_scenario(Fl_Widget* w, void* user_data){
             battlefield->show_player_actions = true;
         } 
 
+
         if(battlefield->show_player_actions == false && battlefield->show_pokemon == true && battlefield->show_moves == true && battlefield->attacking == false){
-            
-            battlefield->moves_menu->hide();
-            battlefield->move1->hide();
-            battlefield->move2->hide();
-            battlefield->move3->hide();
-            battlefield->move4->hide();
-            battlefield->move_info->hide();
 
-            battlefield->battle_menu->show();
-            battlefield->fight->show();
-            battlefield->esc->show();
-            battlefield->pokemon->show();
-                
-            battlefield->show_player_actions = true;
-            battlefield->show_moves = false;
-            battlefield->show_moves_info = false;
+            if(battlefield->log_stage == 4){
+                battlefield->trainer_turn = false;
+            } else {
 
-            battlefield->log_stage = 3;
-            battlefield->update_battle_log();
+                battlefield->moves_menu->hide();
+                battlefield->move1->hide();
+                battlefield->move2->hide();
+                battlefield->move3->hide();
+                battlefield->move4->hide();
+                battlefield->move_info->hide();
+
+                battlefield->battle_menu->show();
+                battlefield->fight->show();
+                battlefield->esc->show();
+                battlefield->pokemon->show();
+                    
+                battlefield->show_player_actions = true;
+                battlefield->show_moves = false;
+                battlefield->show_moves_info = false;
+
+                battlefield->log_stage = 3;
+                battlefield->update_battle_log();
+            }
 
         }
 
@@ -116,11 +126,15 @@ void stage::progress_scenario(Fl_Widget* w, void* user_data){
             battlefield->move_info->hide();
             battlefield->battle_menu->hide();
 
-            battlefield->log_stage = 3;
-            battlefield->update_battle_log();
-
-            battlefield->attacking = false;
+            battlefield->show_moves= false;
         }
+
+        if(battlefield->show_player_actions == false && battlefield->show_pokemon == true && battlefield->show_moves == false && battlefield->attacking == true){
+            
+            battlefield->attacking = false;
+            battlefield->show_moves = true;
+        }
+
 
         if(battlefield->show_player_actions == false && battlefield->show_trainers == false && battlefield->show_pokemon == false){
 
@@ -135,6 +149,71 @@ void stage::progress_scenario(Fl_Widget* w, void* user_data){
             battlefield->show_trainers = true;
         } 
 
+    }
+
+    if(battlefield->ending == 2){
+        if(battlefield->log_stage != 9 && battlefield->log_stage != 10){
+            battlefield->log_stage = 9;
+            battlefield->update_battle_log();
+
+            battlefield->rival_pokemon->hide();
+            battlefield->ally_pokemon->hide();
+
+            battlefield->trainer->show();
+            battlefield->npc->show();
+
+            battlefield->ally_health2->show();
+            battlefield->ally_hp->hide();
+            battlefield->ally_hp_bar->hide();
+            battlefield->ally_name->hide();
+
+            battlefield->enemy_health2->show();
+            battlefield->enemy_hp_bar->hide();
+            battlefield->enemy_name->hide();
+
+            battlefield->enemy_pokeball1->hide();
+            battlefield->ally_pokeball1->show();
+
+
+        } else if(battlefield->log_stage == 9 && battlefield->log_stage != 10){
+            battlefield->log_stage = 10;
+            battlefield->update_battle_log();
+        } else if(battlefield->log_stage == 10 && battlefield->log_stage != 9){
+            battlefield->ending = 0;
+        }
+
+    } else if(battlefield->ending == 1){
+        if(battlefield->log_stage != 6 && battlefield->log_stage != 7 && battlefield->log_stage != 8){
+            battlefield->log_stage = 6;
+            battlefield->update_battle_log();
+            
+            battlefield->rival_pokemon->hide();
+            battlefield->ally_pokemon->hide();
+
+            battlefield->trainer->show();
+            battlefield->npc->show();
+
+            battlefield->ally_health2->show();
+            battlefield->ally_hp->hide();
+            battlefield->ally_hp_bar->hide();
+            battlefield->ally_name->hide();
+
+            battlefield->enemy_health2->show();
+            battlefield->enemy_hp_bar->hide();
+            battlefield->enemy_name->hide();
+
+            battlefield->enemy_pokeball1->show();
+            battlefield->ally_pokeball1->hide();
+
+        } else if(battlefield->log_stage == 6 && battlefield->log_stage != 7 && battlefield->log_stage != 8){
+            battlefield->log_stage = 7;
+            battlefield->update_battle_log();
+        } else if(battlefield->log_stage == 7 && battlefield->log_stage != 6 && battlefield->log_stage != 8){
+            battlefield->log_stage = 8;
+            battlefield->update_battle_log();
+        } else if(battlefield->log_stage == 8 && battlefield->log_stage != 7 && battlefield->log_stage != 6){
+            battlefield->ending = 0;
+        }
     }
 
 };
@@ -165,7 +244,7 @@ void stage::manage_moves(Fl_Widget* w, void* user_data){
 }
 
 
-//manages the visibility of moves info
+//manages the visibility of pokemons
 void stage::send_pokemon(Fl_Widget* w, void* user_data){
     stage* battlefield = static_cast<stage*>(user_data);
     
@@ -217,7 +296,40 @@ void stage::update_battle_log(){
     } else if(log_stage == 5){
         move_data = " Enemy " + string(get_pokemon_name(rival_pokedex_id)) + "\n used " + string(get_move_name(ai_chosen_attack)) + "!";
         battle_text->copy_label(move_data.c_str());
+    } else if(log_stage == 6){
+        move_data = " " + gender_data + " is out of \n usable PkMn!";
+        battle_text->copy_label(move_data.c_str());
+    } else if(log_stage == 7){
+        move_data = " " + gender_data + " blacked out!";
+        battle_text->copy_label(move_data.c_str());
+    } else if(log_stage == 8){
+        move_data = " " + gender_data + " scurried to \n a Pokémon Center...";
+        battle_text->copy_label(move_data.c_str());
+    } else if(log_stage == 9){
+        battle_text->copy_label(" PkMn TRAINER \n was defeated!");
+    } else if(log_stage == 10){
+        move_data = " " + gender_data + " got ¥180 for winning!";
+        battle_text->copy_label(move_data.c_str());
     }
+
+    frame->redraw();
+}
+
+//setea la secuencia de dialogos del final de juego
+void stage::ending_sequence() {
+    
+    gender_selected = false;
+
+    if(get_pokemon_current_hp(rival_pokedex_id) != 0 && get_pokemon_current_hp(trainer_pokedex_id) == 0){
+        ending = 1;
+
+    } else if(get_pokemon_current_hp(rival_pokedex_id) == 0 && get_pokemon_current_hp(trainer_pokedex_id) != 0){
+        ending = 2;
+    }
+}
+
+int stage::getEnding(){
+    return ending;
 }
 
 bool stage::trainers_turn(){
@@ -240,6 +352,7 @@ void stage::update_pokemon_health(){
     }
 }
 
+//changes size for green life bars
 void stage::update_hp_bars(Fl_Box* bar, int original_hp, int current_hp, int full_width) {
 
     float ratio = (static_cast<float>(current_hp) / static_cast<float>(original_hp));
@@ -257,8 +370,6 @@ void stage::update_hp_bars(Fl_Box* bar, int original_hp, int current_hp, int ful
     bar->resize(x, y, updated_width, h);
     bar->redraw();
 }
-
-
 
 
 //carga a los pokemon que van a entrar en el campo
@@ -377,21 +488,20 @@ void stage::execute_attack(Fl_Widget* w, void* user_data){
 
     battlefield->attacking = true;
 
-    battlefield->progress_scenario(w, user_data);
-
     battlefield->log_stage = 4;
     battlefield->update_battle_log();
 
-    set_pokemon_hp(battlefield->rival_pokedex_id, 
-        calculate_combat_damage(get_pokemon_current_hp(battlefield->rival_pokedex_id), get_move_damage(battlefield->attack)));
+    battlefield->progress_scenario(w, user_data);
 
+    
+    int current_hp = get_pokemon_current_hp(battlefield->rival_pokedex_id);
+    int dmg = get_move_damage(battlefield->attack);
+    int effectiveness = get_effectiveness(get_move_type_id(battlefield->attack), get_pokemon_type(battlefield->rival_pokedex_id));
+
+
+    set_pokemon_hp(battlefield->rival_pokedex_id, calculate_combat_damage(current_hp, dmg, effectiveness));
     battlefield->update_pokemon_health();
     
-    battlefield->trainer_turn = false;
-
-    
-    //FALTA FUNCION PARA ACTUALIZAR LA VIDA Y BARRA DE VIDA CON LA INFORMACION DEL BACKEND
-
 }
 
 
@@ -401,15 +511,14 @@ void stage::ai_attack(int ai_selected_attack){
     log_stage = 5;
     update_battle_log();
 
-    int dmg = get_move_damage(ai_chosen_attack);
-    if (dmg < 0 || dmg > 200) {
-        cerr << "damage inválido (" << dmg << ") para ataque con ID " << ai_chosen_attack << "\n";
-        dmg = 0;
-    }
 
     int current_hp = get_pokemon_current_hp(trainer_pokedex_id);
-    set_pokemon_hp(trainer_pokedex_id, calculate_combat_damage(current_hp, dmg));
+    int dmg = get_move_damage(ai_chosen_attack);
+    int effectiveness = get_effectiveness(get_move_type_id(ai_chosen_attack), get_pokemon_type(trainer_pokedex_id));
 
+
+
+    set_pokemon_hp(trainer_pokedex_id, calculate_combat_damage(current_hp, dmg, effectiveness));
     update_pokemon_health();
 
     trainer_turn = true;
@@ -608,8 +717,10 @@ void stage::set_gender(Fl_Widget* w, void* user_data){
     stage* battlefield = static_cast<stage*>(user_data);
     if(w == battlefield->gender_male){
         battlefield->trainer->image(battlefield->player_sprites[1]);
+        battlefield->gender_data = "Gold";
     } else if(w == battlefield->gender_female){
         battlefield->trainer->image(battlefield->player_sprites[4]);
+        battlefield->gender_data = "Kris";
     }
 
     battlefield->gender_male->hide();
@@ -617,6 +728,7 @@ void stage::set_gender(Fl_Widget* w, void* user_data){
     battlefield->gender_selected = true;
     battlefield->progress_scenario(w, user_data);
 }
+
 
 //loads the trainer sprites to player_catalog
 void stage::load_trainers(){

@@ -27,8 +27,12 @@ extern "C" int set_pokemon_hp(int id, int new_hp);
 extern "C" int get_move_damage(int move_id);
 extern "C" const char* get_move_type(int move_id);
 extern "C" const char* get_move_name(int move_id);
-extern "C" int calculate_combat_damage(int hp, int damage);
+extern "C" int calculate_combat_damage(int hp, int damage, int effectiveness);
 extern "C" const char* get_pokemon_name(int id);
+extern "C" int get_move_type_id(int move_id);
+extern "C" int get_effectiveness(int move_type_id, int pokemon_type_id);
+extern "C" int get_pokemon_type(int pokemon_id);
+
 
 class stage {
 
@@ -127,6 +131,10 @@ private:
     int ally_pokeballs;
     int rival_pokeballs;
 
+    int ending;
+
+    string gender_data;
+
 public:
     stage();
     ~stage();
@@ -138,6 +146,10 @@ public:
 
     bool trainers_turn();
 
+    void ending_sequence();
+
+    int getEnding();
+    
     void ai_attack(int ai_selected_attack);
 
     bool ko();
@@ -177,6 +189,8 @@ public:
     void load_pokemon_debut();
 
     void precombat_phase();
+
+    bool getAttacking();
 
     static void manage_attack(Fl_Widget* w, void* user_data);
     
