@@ -6,10 +6,10 @@ totodile:   db "TOTODILE", 0
 
 ; ID, HP original, TIPO
 pokedex_data: 
-    dd 0, 146, 7
-    dq charmander  ; ID charmander, hp: 146, tipo: 7(fuego), pokenombre
+    dd 0, 146, 2
+    dq charmander  ; ID charmander, hp: 146, tipo: 2(fuego), pokenombre
 
-    dd 1, 157, 2  ; ID totodile, hp: 157, tipo: 2(agua), pokenombre
+    dd 1, 157, 3  ; ID totodile, hp: 157, tipo: 2(agua), pokenombre
     dq totodile
 
 pokedex_count: equ ($ - pokedex_data) / 20
@@ -26,6 +26,7 @@ global get_pokemon_original_hp
 global get_pokemon_current_hp
 global set_pokemon_hp
 global get_pokemon_name
+global get_pokemon_type
 
 
 get_pokemon_original_hp:
@@ -89,4 +90,17 @@ get_pokemon_name:
 
 .not_a_pokemon_name:
     mov rax, 0
+    ret
+
+get_pokemon_type:
+    cmp rdi, pokedex_count
+    jae .not_a_pokemon_with_type
+
+    mov rax, rdi
+    imul rax, 20
+    mov eax, [pokedex_data + rax + 8]
+    ret
+
+.not_a_pokemon_with_type:
+    mov eax, -1
     ret
