@@ -59,6 +59,7 @@ section .text
 global get_move_damage
 global get_move_name
 global get_move_type
+global get_move_type_id
 
 
 get_move_damage:  ;<-- recibe un id de movimiento y terona el damage que hace
@@ -99,5 +100,18 @@ get_move_name:
     ret
 
 .not_a_move_name:
+    xor eax, eax
+    ret
+
+get_move_type_id:
+    cmp rdi, moves_count
+    jae .not_a_move_type_id
+
+    mov rax, rdi
+    imul rax, 28
+    mov rax, [moves + rax + 4]  
+    ret
+
+.not_a_move_type_id:
     xor eax, eax
     ret
